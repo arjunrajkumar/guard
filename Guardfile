@@ -1,5 +1,22 @@
-guard :brakeman, quiet: true do
-  watch(%r{^app/.+\.(slim|erb|haml|rhtml|rb|axlsx)$})
+# A sample Guardfile
+# More info at https://github.com/guard/guard#readme
+
+## Uncomment and set this to only include directories you want to watch
+# directories %w(app lib config test spec features) \
+#  .select{|d| Dir.exist?(d) ? d : UI.warning("Directory #{d} does not exist")}
+
+## Note: if you are using the `directories` clause above and you are not
+## watching the project directory ('.'), then you will want to move
+## the Guardfile to a watched dir and symlink it back, e.g.
+#
+#  $ mkdir config
+#  $ mv Guardfile config/
+#  $ ln -s config/Guardfile .
+#
+# and, you'll have to watch "config/Guardfile" instead of "Guardfile"
+
+guard :brakeman, run_on_start: true do
+  watch(%r{^app/.+\.(erb|haml|rhtml|rb)$})
   watch(%r{^config/.+\.rb$})
   watch(%r{^lib/.+\.rb$})
   watch('Gemfile')
@@ -17,35 +34,18 @@ guard :bundler do
   files.each { |file| watch(helper.real_path(file)) }
 end
 
-guard 'bundler_audit', run_on_start: true do
-  watch('Gemfile.lock')
-end
-
-guard :foreman, concurrency: 'web=1,worker=1,release=0' do
-  watch(%r{^lib\/.+\.rb$})
-  watch(%r{^config\/*})
-end
-
-guard :rspec, cmd: 'bundle exec rspec', all_on_start: true do
-  watch('spec/spec_helper.rb')                        { 'spec' }
-  watch('config/routes.rb')                           { 'spec/routing' }
-  watch('app/controllers/application_controller.rb')  { 'spec/controllers' }
-  watch(%r{^spec/.+_spec\.rb$})
-  watch(%r{^app/(.+)\.rb$})                           { |m| "spec/#{m[1]}_spec.rb" }
-  watch(%r{^app/(.*)(\.erb|\.haml|\.slim)$})          { |m| "spec/#{m[1]}#{m[2]}_spec.rb" }
-  watch(%r{^lib/(.+)\.rb$})                           { |m| "spec/lib/#{m[1]}_spec.rb" }
-  watch(%r{^app/controllers/(.+)_(controller)\.rb$})  { |m| ["spec/routing/#{m[1]}_routing_spec.rb", "spec/#{m[2]}s/#{m[1]}_#{m[2]}_spec.rb", "spec/acceptance/#{m[1]}_spec.rb"] }
-
-  # Watch factories
-  watch(%r{^spec/factories/(.*)s\.rb$}) { |m| "spec/models/#{m[1]}_spec.rb" }
-end
-
-guard :rubocop, cli: ['--display-cop-names'] do
-  watch(/.+\.rb$/)
-  watch(/.+\.rake$/)
-  watch(%r{(?:.+/)?\.rubocop\.yml$}) { |m| File.dirname(m[0]) }
-end
-
-guard :yarn do
-  watch("package.json")
+# Usage:
+#     guard :foreman, <options hash>
+#
+# Possible options:
+# * :concurreny - how many of each type of process you would like to run (default is, sensibly, one of each)
+# * :env - one or more .env files to load
+# * :procfile - an alternate Procfile to use (default is Procfile)
+# * :port - an alternate port to use (default is 5000)
+# * :root - an alternate application root
+guard :foreman do
+  # Rails example - Watch controllers, models, helpers, lib, and config files
+  watch( /^app\/(controllers|models|helpers)\/.+\.rb$/ )
+  watch( /^lib\/.+\.rb$/ )
+  watch( /^config\/*/ )
 end
